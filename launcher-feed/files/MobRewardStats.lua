@@ -9,6 +9,8 @@ local totalQuests = 0
 local serverQuestCount
 local lastServerQuestCountIncrease = 0
 local localQuestTurnInsPending = 0
+local questSyncAttempts = 0
+local questSyncElapsed = 0
 local killCountText
 local questCountText
 local characterData
@@ -280,12 +282,12 @@ local function createPanel()
     killCountText:SetPoint("TOPLEFT", subtitle, "BOTTOMLEFT", 0, -12)
     killCountText:SetText("Total creature kills: " .. totalKills)
 
-    questCountText = panel:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    questCountText:SetPoint("TOPLEFT", killCountText, "BOTTOMLEFT", 0, -4)
+    questCountText = panel:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    questCountText:SetPoint("TOPLEFT", killCountText, "BOTTOMLEFT", 0, -6)
     questCountText:SetText("Quests completed: " .. totalQuests)
 
     local scroll = CreateFrame("ScrollFrame", "MobRewardStatsScrollFrame", panel, "UIPanelScrollFrameTemplate")
-    scroll:SetPoint("TOPLEFT", panel, "TOPLEFT", 16, -102)
+    scroll:SetPoint("TOPLEFT", panel, "TOPLEFT", 16, -120)
     scroll:SetPoint("BOTTOMRIGHT", panel, "BOTTOMRIGHT", -34, 18)
 
     local scrollChild = CreateFrame("Frame", nil, scroll)
@@ -327,6 +329,7 @@ local function onServerMessage(message)
 
     local questCount = string.match(message, "^KILLSTATSV1\tQUESTS\t(%d+)$")
     if questCount then
+        questSyncAttempts = 5
         local newServerQuestCount = tonumber(questCount) or serverQuestCount or 0
         if serverQuestCount and newServerQuestCount > serverQuestCount then
             lastServerQuestCountIncrease = GetTime()
@@ -431,7 +434,11 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
     elseif event == "PLAYER_ENTERING_WORLD" or event == "PARTY_MEMBERS_CHANGED" or event == "RAID_ROSTER_UPDATE" then
         refreshGroupUnits()
         if event == "PLAYER_ENTERING_WORLD" then
+            serverQuestCount = nil
+            questSyncAttempts = 0
+            questSyncElapsed = 0
             requestServerStats()
+            questSyncAttempts = 1
         end
     elseif event == "COMBAT_LOG_EVENT_UNFILTERED" then
         onCombatLog(...)
@@ -441,5 +448,17 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
         onAddonMessage(event, ...)
     elseif event == "CHAT_MSG_SYSTEM" then
         onSystemMessage(...)
+    end
+end)
+eventFrame:SetScript("OnUpdate", function(self, elapsed)
+    if serverQuestCount ~= nil or questSyncAttempts >= 5 then
+        return
+    end
+
+    questSyncElapsed = questSyncElapsed + elapsed
+    if questSyncElapsed >= 3 then
+        questSyncElapsed = 0
+        requestServerStats()
+        questSyncAttempts = questSyncAttempts + 1
     end
 end)
