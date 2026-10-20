@@ -3,22 +3,22 @@
   "realmlist": "wrath-of-azeroth.playit.plus:6946",
   "packages": [
     {
-      "sha256": "8a0368d6865aac8728b14bd5035095eaed03a32c8ed8b9859b3facc85a0eb1e7",
+      "sha256": "478a24e1b3987ed878f0bd5d6124d026dbe6f544d9145ace473b578e6cbd0fce",
       "id": "MobRewardStats",
-      "version": "1.9.3",
+      "version": "1.9.4",
       "url": "packages/MobRewardStats.zip"
     }
   ],
   "files": [
     {
-      "version": "1.9.3",
-      "sha256": "ccb73e3f3dab75af927ec5421641e76f52a22c461399890aa751df1cb3d7cc00",
+      "version": "1.9.4",
+      "sha256": "a8d73b512b036dcf0813a8dc88e27886a8d3424c10a51a3dffd7cda957b81a89",
       "url": "files/MobRewardStats.lua",
       "path": "Interface/AddOns/MobRewardStats/MobRewardStats.lua"
     },
     {
-      "version": "1.9.3",
-      "sha256": "f5c42ada6c3fed18c53128de75232c1e29bb2aaaa8a06d7a6c54a4deee3a5d99",
+      "version": "1.9.4",
+      "sha256": "0a337385a9564f827fdb9ba5d9a334ee5d707c0645b9bf05aae8a31603a5e590",
       "url": "files/MobRewardStats.toc",
       "path": "Interface/AddOns/MobRewardStats/MobRewardStats.toc"
     },

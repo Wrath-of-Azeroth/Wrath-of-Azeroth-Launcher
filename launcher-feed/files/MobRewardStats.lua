@@ -7,6 +7,7 @@ local minimapButton
 local totalKills = 0
 local totalQuests = 0
 local serverQuestCount
+local lastServerQuestCountIncrease = 0
 local localQuestTurnInsPending = 0
 local killCountText
 local questCountText
@@ -326,7 +327,15 @@ local function onServerMessage(message)
 
     local questCount = string.match(message, "^KILLSTATSV1\tQUESTS\t(%d+)$")
     if questCount then
-        serverQuestCount = tonumber(questCount) or serverQuestCount or 0
+        local newServerQuestCount = tonumber(questCount) or serverQuestCount or 0
+        if serverQuestCount and newServerQuestCount > serverQuestCount then
+            lastServerQuestCountIncrease = GetTime()
+        elseif not serverQuestCount and newServerQuestCount > totalQuests then
+            -- First message may be the login sync. Suppress a nearby reward
+            -- fallback only if the server already raised the visible total.
+            lastServerQuestCountIncrease = GetTime()
+        end
+        serverQuestCount = newServerQuestCount
         updateQuestCount(serverQuestCount)
         return
     end
@@ -373,7 +382,10 @@ local function onSystemMessage(message)
     if string.sub(message, 1, 14) == "Quest reward: " then
         if localQuestTurnInsPending > 0 then
             localQuestTurnInsPending = localQuestTurnInsPending - 1
-        elseif serverQuestCount == nil or totalQuests <= serverQuestCount then
+            lastServerQuestCountIncrease = 0
+        elseif lastServerQuestCountIncrease > 0 and GetTime() - lastServerQuestCountIncrease < 5 then
+            lastServerQuestCountIncrease = 0
+        else
             updateQuestCount(totalQuests + 1)
         end
     end
