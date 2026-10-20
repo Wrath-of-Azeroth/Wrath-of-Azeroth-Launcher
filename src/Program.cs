@@ -3,8 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Drawing.Imaging;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
@@ -16,6 +14,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Web.Script.Serialization;
+using System.Runtime.InteropServices;
 
 namespace WrathOfAzerothLauncher
 {
@@ -34,46 +33,63 @@ namespace WrathOfAzerothLauncher
     {
         private const string DefaultManifestUrl = "https://github.com/Wrath-of-Azeroth/Wrath-of-Azeroth-Launcher/raw/refs/heads/main/launcher-feed/manifest.json";
         private const string DefaultRealmListEndpoint = "wrath-of-azeroth.playit.plus:6946";
+        private const int ArtworkWidth = 1672;
+        private const int ArtworkHeight = 941;
+        private const int WmNcLButtonDown = 0x00A1;
+        private const int HtCaption = 0x0002;
         private static readonly HttpClient Http = CreateHttpClient();
         private readonly JavaScriptSerializer _json = new JavaScriptSerializer();
         private readonly TextBox _clientPath = new TextBox();
         private readonly TextBox _manifestUrl = new TextBox();
-        private readonly Label _status = new Label();
-        private readonly Button _updateButton = new Button();
-        private readonly Button _updateAndPlayButton = new Button();
         private readonly string _settingsPath;
-        private readonly LauncherBackgroundPanel _canvas = new LauncherBackgroundPanel();
-        private readonly Label _realmStatus = new Label();
-        private readonly StatusDot _realmDot = new StatusDot();
-        private readonly Label _clientStatus = new Label();
+        private readonly Image _artwork;
         private readonly Timer _realmTimer = new Timer();
         private bool _realmCheckInProgress;
+        private bool _realmOnline;
+        private bool _busy;
+        private string _statusMessage = String.Empty;
         private string _activeRealmEndpoint = DefaultRealmListEndpoint;
+
+        [DllImport("user32.dll")]
+        private static extern bool ReleaseCapture();
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr SendMessage(IntPtr window, int message, IntPtr wParam, IntPtr lParam);
 
         public LauncherForm()
         {
             Text = "Wrath of Azeroth Launcher";
-            MinimumSize = new Size(1024, 600);
-            ClientSize = new Size(1280, 720);
+            FormBorderStyle = FormBorderStyle.None;
+            AutoScaleMode = AutoScaleMode.None;
+            ClientSize = new Size(ArtworkWidth, ArtworkHeight);
             StartPosition = FormStartPosition.CenterScreen;
-            Font = new Font("Segoe UI", 9F);
-            BackColor = Color.FromArgb(5, 12, 22);
-            ForeColor = Color.White;
-            Icon = SystemIcons.Application;
+            BackColor = Color.Black;
             DoubleBuffered = true;
+
+            string artworkPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "LauncherArtwork.png");
+            if (!File.Exists(artworkPath))
+                throw new FileNotFoundException("LauncherArtwork.png must be beside the launcher executable.", artworkPath);
+            _artwork = Image.FromFile(artworkPath);
+            if (_artwork.Width != ArtworkWidth || _artwork.Height != ArtworkHeight)
+                throw new InvalidOperationException("Launcher artwork must remain at its original 1672x941 resolution.");
 
             string dataDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "WrathOfAzerothLauncher");
             Directory.CreateDirectory(dataDirectory);
             _settingsPath = Path.Combine(dataDirectory, "settings.json");
             _realmTimer.Interval = 15000;
             _realmTimer.Tick += async delegate { await CheckRealmStatusAsync(); };
+            Shown += async delegate
+            {
+                await CheckRealmStatusAsync();
+                _realmTimer.Start();
+            };
             FormClosed += delegate
             {
                 _realmTimer.Stop();
                 _realmTimer.Dispose();
+                _artwork.Dispose();
             };
 
-            BuildInterface();
             LoadSettings();
             Uri savedManifestUri;
             if (String.IsNullOrWhiteSpace(_manifestUrl.Text) ||
@@ -101,108 +117,74 @@ namespace WrathOfAzerothLauncher
             return client;
         }
 
-        private void BuildInterface()
+        protected override void OnPaint(PaintEventArgs e)
         {
-            Text = "Wrath of Azeroth Launcher";
-            _canvas.Dock = DockStyle.Fill;
-            Controls.Add(_canvas);
+            base.OnPaint(e);
+            int x = (ClientSize.Width - _artwork.Width) / 2;
+            int y = (ClientSize.Height - _artwork.Height) / 2;
+            e.Graphics.DrawImageUnscaled(_artwork, x, y);
+        }
 
-            GlassPanel glass = new GlassPanel();
-            glass.Location = new Point(42, 48);
-            glass.Size = new Size(430, 530);
-            _canvas.Controls.Add(glass);
+        protected override void OnMouseClick(MouseEventArgs e)
+        {
+            base.OnMouseClick(e);
+            Point point = ToArtworkPoint(e.Location);
+            if (_busy)
+                return;
 
-            Label title = CreateLabel("WRATH OF AZEROTH", new Font("Segoe UI", 24F, FontStyle.Bold),
-                Color.FromArgb(245, 248, 255), new Point(28, 28), new Size(365, 42));
-            glass.Controls.Add(title);
-
-            Label subtitle = CreateLabel("WOTLK 3.3.5a", new Font("Segoe UI", 9.5F, FontStyle.Bold),
-                Color.FromArgb(135, 216, 244), new Point(30, 75), new Size(300, 22));
-            glass.Controls.Add(subtitle);
-
-            Button settings = CreateButton("⚙", new Point(1190, 24), new Size(46, 42),
-                Color.FromArgb(185, 8, 15, 26), Color.FromArgb(215, 218, 232), 14F);
-            settings.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            settings.FlatAppearance.BorderColor = Color.FromArgb(95, 168, 199, 219);
-            settings.FlatAppearance.BorderSize = 1;
-            settings.Click += ShowSettings;
-            _canvas.Controls.Add(settings);
-
-            Panel realmCard = new Panel();
-            realmCard.Location = new Point(24, 122);
-            realmCard.Size = new Size(378, 70);
-            realmCard.BackColor = Color.FromArgb(110, 3, 10, 18);
-            glass.Controls.Add(realmCard);
-
-            Label realmName = CreateLabel("FROSTGATE", new Font("Segoe UI", 11F, FontStyle.Bold),
-                Color.White, new Point(15, 9), new Size(195, 22));
-            realmCard.Controls.Add(realmName);
-
-            _realmStatus.Text = "CHECKING...";
-            _realmStatus.Font = new Font("Segoe UI", 8F, FontStyle.Bold);
-            _realmStatus.ForeColor = Color.FromArgb(132, 205, 226);
-            _realmStatus.TextAlign = ContentAlignment.MiddleLeft;
-            _realmStatus.Location = new Point(239, 12);
-            _realmStatus.Size = new Size(124, 20);
-            realmCard.Controls.Add(_realmStatus);
-
-            _realmDot.Location = new Point(219, 16);
-            _realmDot.Size = new Size(12, 12);
-            realmCard.Controls.Add(_realmDot);
-
-            Label realmDetail = CreateLabel("Wrath of the Lich King  •  3.3.5a", new Font("Segoe UI", 8.5F),
-                Color.FromArgb(167, 186, 208), new Point(15, 33), new Size(330, 18));
-            realmCard.Controls.Add(realmDetail);
-
-            _clientStatus.Text = "CLIENT READY TO CHECK";
-            _clientStatus.Font = new Font("Segoe UI", 8.5F, FontStyle.Bold);
-            _clientStatus.ForeColor = Color.FromArgb(180, 199, 219);
-            _clientStatus.BackColor = Color.Transparent;
-            _clientStatus.Location = new Point(29, 215);
-            _clientStatus.Size = new Size(365, 22);
-            glass.Controls.Add(_clientStatus);
-
-            _updateAndPlayButton.Text = "PLAY";
-            _updateAndPlayButton.Location = new Point(24, 258);
-            _updateAndPlayButton.Size = new Size(378, 58);
-            _updateAndPlayButton.Anchor = AnchorStyles.Top | AnchorStyles.Left;
-            _updateAndPlayButton.Font = new Font("Segoe UI", 14F, FontStyle.Bold);
-            _updateAndPlayButton.ForeColor = Color.FromArgb(6, 18, 30);
-            _updateAndPlayButton.BackColor = Color.FromArgb(107, 220, 247);
-            _updateAndPlayButton.FlatStyle = FlatStyle.Flat;
-            _updateAndPlayButton.FlatAppearance.BorderSize = 0;
-            _updateAndPlayButton.FlatAppearance.MouseOverBackColor = Color.FromArgb(156, 235, 255);
-            _updateAndPlayButton.FlatAppearance.MouseDownBackColor = Color.FromArgb(75, 187, 222);
-            _updateAndPlayButton.Click += UpdateAndPlay;
-            glass.Controls.Add(_updateAndPlayButton);
-
-            _updateButton.Text = "CHECK FOR UPDATES";
-            _updateButton.Location = new Point(24, 330);
-            _updateButton.Size = new Size(378, 48);
-            _updateButton.Anchor = AnchorStyles.Top | AnchorStyles.Left;
-            _updateButton.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            _updateButton.ForeColor = Color.FromArgb(222, 233, 244);
-            _updateButton.BackColor = Color.FromArgb(170, 8, 18, 31);
-            _updateButton.FlatStyle = FlatStyle.Flat;
-            _updateButton.FlatAppearance.BorderColor = Color.FromArgb(135, 113, 190, 218);
-            _updateButton.FlatAppearance.BorderSize = 1;
-            _updateButton.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 15, 41, 61);
-            _updateButton.Click += UpdateAddons;
-            glass.Controls.Add(_updateButton);
-
-            _status.Text = "Ready. Play checks server files before launching the game.";
-            _status.Location = new Point(28, 401);
-            _status.Size = new Size(370, 50);
-            _status.ForeColor = Color.FromArgb(184, 201, 220);
-            _status.Font = new Font("Segoe UI", 8.5F);
-            _status.BackColor = Color.Transparent;
-            glass.Controls.Add(_status);
-
-            Shown += async delegate
+            if (e.Button == MouseButtons.Left && InRect(point, 67, 628, 397, 94))
+                UpdateAndPlay(this, EventArgs.Empty);
+            else if (e.Button == MouseButtons.Left && InRect(point, 57, 779, 310, 48))
+                UpdateAddons(this, EventArgs.Empty);
+            else if (e.Button == MouseButtons.Left && InRect(point, 395, 779, 55, 48))
+                ShowSettings(this, EventArgs.Empty);
+            else if (e.Button == MouseButtons.Left && InRect(point, 1507, 27, 50, 40))
+                WindowState = FormWindowState.Minimized;
+            else if (e.Button == MouseButtons.Left && InRect(point, 1558, 27, 49, 40))
             {
-                await CheckRealmStatusAsync();
-                _realmTimer.Start();
-            };
+                WindowState = WindowState == FormWindowState.Maximized ? FormWindowState.Normal : FormWindowState.Maximized;
+                Invalidate();
+            }
+            else if (e.Button == MouseButtons.Left && InRect(point, 1609, 27, 44, 40))
+                Close();
+            else if (e.Button == MouseButtons.Left && InRect(point, 45, 407, 435, 100))
+                ShowRealmStatus();
+        }
+
+        protected override void OnMouseMove(MouseEventArgs e)
+        {
+            base.OnMouseMove(e);
+            Point point = ToArtworkPoint(e.Location);
+            bool clickable = InRect(point, 67, 628, 397, 94) || InRect(point, 57, 779, 310, 48) ||
+                InRect(point, 395, 779, 55, 48) || InRect(point, 1507, 27, 146, 40) || InRect(point, 45, 407, 435, 100);
+            Cursor = clickable ? Cursors.Hand : (point.Y >= 0 && point.Y < 25 && point.X >= 80 && point.X < 1495 ? Cursors.SizeAll : Cursors.Default);
+        }
+
+        protected override void OnMouseDown(MouseEventArgs e)
+        {
+            base.OnMouseDown(e);
+            Point point = ToArtworkPoint(e.Location);
+            if (e.Button == MouseButtons.Left && point.Y >= 0 && point.Y < 25 && point.X >= 80 && point.X < 1495)
+            {
+                ReleaseCapture();
+                SendMessage(Handle, WmNcLButtonDown, new IntPtr(HtCaption), IntPtr.Zero);
+            }
+        }
+
+        protected override void OnMouseDoubleClick(MouseEventArgs e)
+        {
+            base.OnMouseDoubleClick(e);
+            Point point = ToArtworkPoint(e.Location);
+            if (e.Button == MouseButtons.Left && point.Y >= 0 && point.Y < 25 && point.X >= 80 && point.X < 1495)
+            {
+                WindowState = WindowState == FormWindowState.Maximized ? FormWindowState.Normal : FormWindowState.Maximized;
+                Invalidate();
+            }
+        }
+
+        private Point ToArtworkPoint(Point point)
+        {
+            return new Point(point.X - (ClientSize.Width - _artwork.Width) / 2, point.Y - (ClientSize.Height - _artwork.Height) / 2);
         }
 
         private static Label CreateLabel(string text, Font font, Color color, Point location, Size size)
@@ -218,19 +200,9 @@ namespace WrathOfAzerothLauncher
             return label;
         }
 
-        private static Button CreateButton(string text, Point location, Size size, Color background, Color foreground, float fontSize)
+        private static bool InRect(Point point, int x, int y, int width, int height)
         {
-            Button button = new Button();
-            button.Text = text;
-            button.Location = location;
-            button.Size = size;
-            button.Font = new Font("Segoe UI Symbol", fontSize, FontStyle.Bold);
-            button.ForeColor = foreground;
-            button.BackColor = background;
-            button.FlatStyle = FlatStyle.Flat;
-            button.FlatAppearance.BorderSize = 0;
-            button.TabStop = false;
-            return button;
+            return point.X >= x && point.X < x + width && point.Y >= y && point.Y < y + height;
         }
 
         private async Task CheckRealmStatusAsync()
@@ -238,17 +210,13 @@ namespace WrathOfAzerothLauncher
             if (_realmCheckInProgress)
                 return;
             _realmCheckInProgress = true;
-            _realmStatus.Text = "CHECKING...";
-            _realmStatus.ForeColor = Color.FromArgb(132, 205, 226);
-            _realmDot.DotColor = Color.FromArgb(240, 183, 90);
             try
             {
                 Match match = Regex.Match(_activeRealmEndpoint, "^([A-Za-z0-9.-]+):([0-9]{1,5})$");
                 int port;
                 if (!match.Success || !Int32.TryParse(match.Groups[2].Value, out port))
                 {
-                    _realmStatus.Text = "UNAVAILABLE";
-                    _realmDot.DotColor = Color.FromArgb(236, 67, 72);
+                    _realmOnline = false;
                     return;
                 }
 
@@ -258,28 +226,30 @@ namespace WrathOfAzerothLauncher
                     Task completed = await Task.WhenAny(connection, Task.Delay(3500));
                     if (!Object.ReferenceEquals(completed, connection))
                     {
-                        _realmStatus.Text = "REALM OFFLINE";
-                        _realmStatus.ForeColor = Color.FromArgb(255, 159, 129);
-                        _realmDot.DotColor = Color.FromArgb(236, 67, 72);
+                        _realmOnline = false;
                         return;
                     }
 
                     await connection;
-                    _realmStatus.Text = "REALM ONLINE";
-                    _realmStatus.ForeColor = Color.FromArgb(133, 225, 174);
-                    _realmDot.DotColor = Color.FromArgb(62, 220, 128);
+                    _realmOnline = true;
                 }
             }
             catch
             {
-                _realmStatus.Text = "REALM OFFLINE";
-                _realmStatus.ForeColor = Color.FromArgb(255, 159, 129);
-                _realmDot.DotColor = Color.FromArgb(236, 67, 72);
+                _realmOnline = false;
             }
             finally
             {
                 _realmCheckInProgress = false;
             }
+        }
+
+        private async void ShowRealmStatus()
+        {
+            await CheckRealmStatusAsync();
+            string status = _realmOnline ? "The realm login server is online." : "The realm login server is offline.";
+            MessageBox.Show(this, status, "Realm Status", MessageBoxButtons.OK,
+                _realmOnline ? MessageBoxIcon.Information : MessageBoxIcon.Warning);
         }
 
         private void ShowSettings(object sender, EventArgs e)
@@ -405,6 +375,7 @@ namespace WrathOfAzerothLauncher
             if (!File.Exists(wowPath))
             {
                 SetStatus("Select the Wrath client folder that contains Wow.exe.", true);
+                MessageBox.Show(this, _statusMessage, "Wrath of Azeroth Launcher", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
@@ -412,6 +383,7 @@ namespace WrathOfAzerothLauncher
             if (String.IsNullOrEmpty(feedText))
             {
                 SetStatus("Enter your server's update manifest URL to check for updates.", true);
+                MessageBox.Show(this, _statusMessage, "Wrath of Azeroth Launcher", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
@@ -435,19 +407,18 @@ namespace WrathOfAzerothLauncher
                 ConfigureRealmlist(clientPath, manifest);
                 int updated = updatedPackages + updatedFiles;
                 string status = updated == 0 ? "Your client is up to date." : "Installed or updated " + updated + " server file(s).";
-                _clientStatus.Text = updated == 0 ? "CLIENT UP TO DATE" : "CLIENT UPDATED";
-                _clientStatus.ForeColor = Color.FromArgb(133, 225, 174);
                 if (removedLegacyPatches > 0)
                     status += " Removed " + removedLegacyPatches + " obsolete WoA patch(es).";
                 SetStatus(status, false);
                 if (playAfter)
                     LaunchGame(clientPath);
+                else
+                    MessageBox.Show(this, status, "Wrath of Azeroth Launcher", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception exception)
             {
-                _clientStatus.Text = "UPDATE CHECK FAILED";
-                _clientStatus.ForeColor = Color.FromArgb(255, 159, 129);
                 SetStatus("Update failed: " + exception.Message, true);
+                MessageBox.Show(this, _statusMessage, "Wrath of Azeroth Launcher", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
@@ -833,159 +804,12 @@ namespace WrathOfAzerothLauncher
 
         private void SetBusy(bool busy)
         {
-            _updateButton.Enabled = !busy;
-            _updateAndPlayButton.Enabled = !busy;
-            _updateAndPlayButton.Text = busy ? "UPDATING..." : "PLAY";
+            _busy = busy;
         }
 
         private void SetStatus(string message, bool isError)
         {
-            _status.Text = message;
-            _status.ForeColor = isError ? Color.FromArgb(255, 125, 125) : Color.FromArgb(179, 199, 219);
-        }
-    }
-
-    internal sealed class LauncherBackgroundPanel : Panel
-    {
-        private readonly Image _background;
-
-        public LauncherBackgroundPanel()
-        {
-            DoubleBuffered = true;
-            ResizeRedraw = true;
-            string artworkPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Frostgate.png");
-            try
-            {
-                if (File.Exists(artworkPath))
-                    _background = Image.FromFile(artworkPath);
-            }
-            catch
-            {
-                _background = null;
-            }
-        }
-
-        protected override void OnPaint(PaintEventArgs e)
-        {
-            base.OnPaint(e);
-            Graphics graphics = e.Graphics;
-            graphics.SmoothingMode = SmoothingMode.HighQuality;
-            graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
-            graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
-
-            if (_background == null)
-            {
-                graphics.Clear(Color.FromArgb(7, 16, 28));
-            }
-            else
-            {
-                float scale = Math.Max((float)ClientSize.Width / _background.Width, (float)ClientSize.Height / _background.Height);
-                float width = _background.Width * scale;
-                float height = _background.Height * scale;
-                RectangleF destination = new RectangleF((ClientSize.Width - width) / 2F, (ClientSize.Height - height) / 2F, width, height);
-                using (ImageAttributes attributes = new ImageAttributes())
-                {
-                    ColorMatrix matrix = new ColorMatrix(new float[][]
-                    {
-                        new float[] { 0.76F, 0F, 0F, 0F, 0F },
-                        new float[] { 0F, 0.80F, 0F, 0F, 0F },
-                        new float[] { 0F, 0F, 0.90F, 0F, 0F },
-                        new float[] { 0F, 0F, 0F, 1F, 0F },
-                        new float[] { 0F, 0F, 0F, 0F, 1F }
-                    });
-                    attributes.SetColorMatrix(matrix);
-                    graphics.DrawImage(_background, Rectangle.Round(destination), 0, 0, _background.Width, _background.Height, GraphicsUnit.Pixel, attributes);
-                }
-            }
-
-            using (LinearGradientBrush leftShade = new LinearGradientBrush(
-                new Point(0, 0), new Point(Math.Max(500, ClientSize.Width / 2), 0),
-                Color.FromArgb(62, 3, 10, 20), Color.FromArgb(4, 3, 10, 20)))
-            {
-                graphics.FillRectangle(leftShade, new Rectangle(0, 0, Math.Max(500, ClientSize.Width / 2), ClientSize.Height));
-            }
-
-            using (LinearGradientBrush bottomShade = new LinearGradientBrush(
-                new Point(0, 0), new Point(0, ClientSize.Height),
-                Color.FromArgb(0, 2, 8, 16), Color.FromArgb(100, 2, 8, 16)))
-            {
-                graphics.FillRectangle(bottomShade, ClientRectangle);
-            }
-
-            using (Pen edge = new Pen(Color.FromArgb(80, 102, 202, 232), 1F))
-                graphics.DrawLine(edge, 0, 0, ClientSize.Width, 0);
-        }
-    }
-
-    internal sealed class GlassPanel : Panel
-    {
-        public GlassPanel()
-        {
-            DoubleBuffered = true;
-            SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer |
-                ControlStyles.SupportsTransparentBackColor | ControlStyles.UserPaint, true);
-            BackColor = Color.Transparent;
-        }
-
-        protected override void OnPaint(PaintEventArgs e)
-        {
-            base.OnPaint(e);
-            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-            Rectangle bounds = ClientRectangle;
-            bounds.Inflate(-1, -1);
-            using (GraphicsPath shape = CreateRoundedRectangle(bounds, 15))
-            using (SolidBrush fill = new SolidBrush(Color.FromArgb(188, 5, 14, 27)))
-            using (Pen border = new Pen(Color.FromArgb(132, 103, 194, 220), 1F))
-            {
-                e.Graphics.FillPath(fill, shape);
-                e.Graphics.DrawPath(border, shape);
-            }
-        }
-
-        private static GraphicsPath CreateRoundedRectangle(Rectangle bounds, int radius)
-        {
-            int diameter = radius * 2;
-            GraphicsPath path = new GraphicsPath();
-            path.AddArc(bounds.Left, bounds.Top, diameter, diameter, 180F, 90F);
-            path.AddArc(bounds.Right - diameter, bounds.Top, diameter, diameter, 270F, 90F);
-            path.AddArc(bounds.Right - diameter, bounds.Bottom - diameter, diameter, diameter, 0F, 90F);
-            path.AddArc(bounds.Left, bounds.Bottom - diameter, diameter, diameter, 90F, 90F);
-            path.CloseFigure();
-            return path;
-        }
-    }
-
-    internal sealed class StatusDot : Control
-    {
-        private Color _dotColor = Color.FromArgb(240, 183, 90);
-
-        public Color DotColor
-        {
-            get { return _dotColor; }
-            set
-            {
-                _dotColor = value;
-                Invalidate();
-            }
-        }
-
-        public StatusDot()
-        {
-            SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer |
-                ControlStyles.SupportsTransparentBackColor | ControlStyles.UserPaint, true);
-            BackColor = Color.Transparent;
-        }
-
-        protected override void OnPaint(PaintEventArgs e)
-        {
-            base.OnPaint(e);
-            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-            Rectangle bounds = new Rectangle(1, 1, Math.Max(1, Width - 3), Math.Max(1, Height - 3));
-            using (SolidBrush glow = new SolidBrush(Color.FromArgb(72, _dotColor.R, _dotColor.G, _dotColor.B)))
-                e.Graphics.FillEllipse(glow, bounds);
-            bounds.Inflate(-2, -2);
-            using (SolidBrush dot = new SolidBrush(_dotColor))
-                e.Graphics.FillEllipse(dot, bounds);
+            _statusMessage = message;
         }
     }
 }

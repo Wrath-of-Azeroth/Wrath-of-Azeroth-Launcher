@@ -3,7 +3,7 @@ $ErrorActionPreference = 'Stop'
 $root = $PSScriptRoot
 $compiler = Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319\csc.exe'
 $source = Join-Path $root 'src\Program.cs'
-$artwork = Join-Path $root 'assets\Frostgate.png'
+$artwork = Join-Path $root 'assets\LauncherArtwork.png'
 $executable = Join-Path $root 'WoAClientLauncher.exe'
 $bundle = Join-Path $root 'WoAClientLauncher-bundle.zip'
 $feed = Join-Path $root 'launcher-feed'
@@ -28,12 +28,12 @@ if ($LASTEXITCODE -ne 0) {
     throw "Launcher compilation failed with exit code $LASTEXITCODE"
 }
 
-Copy-Item -LiteralPath $artwork -Destination (Join-Path $root 'Frostgate.png') -Force
+Copy-Item -LiteralPath $artwork -Destination (Join-Path $root 'LauncherArtwork.png') -Force
 $staging = Join-Path ([System.IO.Path]::GetTempPath()) ('WoALauncherBundle-' + [Guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $staging | Out-Null
 try {
     Copy-Item -LiteralPath $executable -Destination $staging
-    Copy-Item -LiteralPath (Join-Path $root 'Frostgate.png') -Destination $staging
+    Copy-Item -LiteralPath (Join-Path $root 'LauncherArtwork.png') -Destination $staging
     Copy-Item -LiteralPath (Join-Path $root 'README.txt') -Destination $staging
     Copy-Item -LiteralPath $feed -Destination $staging -Recurse
     if (Test-Path -LiteralPath $bundle) {
