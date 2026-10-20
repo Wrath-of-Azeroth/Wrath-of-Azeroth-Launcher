@@ -2,6 +2,6 @@
 ## Title: Stat Tracker
 ## Notes: Tracks lifetime stat gains, creature kills, and quest completions.
 ## Author: Wrath of Azeroth
-## Version: 1.9.0
+## Version: 1.9.1
 ## SavedVariables: MobRewardStatsDB
 MobRewardStats.lua

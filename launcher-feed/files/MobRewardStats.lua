@@ -66,13 +66,19 @@ local function updateKillCount(count)
 end
 
 local function updateQuestCount(count)
-    totalQuests = count
+    -- The local quest-reward hook is an immediate fallback. Never let a late
+    -- server sync overwrite a higher locally recorded total.
+    totalQuests = math.max(totalQuests, tonumber(count) or 0)
     if characterData then
         characterData.totalQuests = totalQuests
     end
     if questCountText then
         questCountText:SetText("Quests completed: " .. totalQuests)
     end
+end
+
+local function recordQuestTurnIn()
+    updateQuestCount(totalQuests + 1)
 end
 
 local function addGroupUnit(unit)
@@ -359,6 +365,12 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
         characterData.stats = characterData.stats or {}
         for _, entry in ipairs(displayStats) do
             stats[entry[1]] = tonumber(characterData.stats[entry[1]]) or 0
+        end
+        -- In 3.3.5, GetQuestReward is called when the player confirms a quest
+        -- turn-in. QUEST_COMPLETE fires earlier, while the reward window is
+        -- merely open, so it would count quests that were never turned in.
+        if type(GetQuestReward) == "function" and hooksecurefunc then
+            hooksecurefunc("GetQuestReward", recordQuestTurnIn)
         end
         refreshGroupUnits()
         createPanel()
