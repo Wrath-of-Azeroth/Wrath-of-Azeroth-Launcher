@@ -6,6 +6,8 @@ local panel
 local minimapButton
 local totalKills = 0
 local totalQuests = 0
+local serverQuestCount
+local localQuestTurnInsPending = 0
 local killCountText
 local questCountText
 local characterData
@@ -107,6 +109,7 @@ local function updateQuestCount(count)
 end
 
 local function recordQuestTurnIn()
+    localQuestTurnInsPending = localQuestTurnInsPending + 1
     updateQuestCount(totalQuests + 1)
 end
 
@@ -323,7 +326,8 @@ local function onServerMessage(message)
 
     local questCount = string.match(message, "^KILLSTATSV1\tQUESTS\t(%d+)$")
     if questCount then
-        updateQuestCount(tonumber(questCount) or totalQuests)
+        serverQuestCount = tonumber(questCount) or serverQuestCount or 0
+        updateQuestCount(serverQuestCount)
         return
     end
 
@@ -361,6 +365,17 @@ local function onSystemMessage(message)
     local statId = statName and statIdsByName[statName]
     if not amount or not statId then
         return
+    end
+
+    -- The quest reward stat notice is a reliable fallback if the client UI
+    -- hook or the server's quest-count whisper is missed. Avoid double counts
+    -- when either path already recorded this turn-in.
+    if string.sub(message, 1, 14) == "Quest reward: " then
+        if localQuestTurnInsPending > 0 then
+            localQuestTurnInsPending = localQuestTurnInsPending - 1
+        elseif serverQuestCount == nil or totalQuests <= serverQuestCount then
+            updateQuestCount(totalQuests + 1)
+        end
     end
 
     stats[statId] = (stats[statId] or 0) + math.floor((tonumber(amount) or 0) * 100 + 0.5)
