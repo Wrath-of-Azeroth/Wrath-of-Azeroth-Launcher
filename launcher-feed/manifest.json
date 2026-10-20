@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "packages": [
+    {
+      "sha256": "afa60fa75752cbf0654265ecff72023ca76ea686520085b8015b5be54d3ce29d",
+      "id": "MobRewardStats",
+      "version": "1.7.0",
+      "url": "packages/MobRewardStats.zip"
+    }
+  ],
+  "files": [
+    {
+      "sha256": "ab78ae88e6be8d818e890257607f8f2b1138bf03a13121626e0e258ce99945f8",
+      "url": "files/patch-4.MPQ",
+      "version": "1.0.0",
+      "path": "Data/patch-4.MPQ"
+    }
+  ]
+}
