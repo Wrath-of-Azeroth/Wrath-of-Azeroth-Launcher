@@ -4,7 +4,7 @@ Download `WoAClientLauncher-bundle.zip`, extract it into a clean Wrath 3.3.5a cl
 
 The launcher checks the public update manifest before playing:
 
-`https://raw.githubusercontent.com/Wrath-of-Azeroth/Wrath-of-Azeroth-Launcher/main/launcher-feed/manifest.json`
+`https://github.com/Wrath-of-Azeroth/Wrath-of-Azeroth-Launcher/raw/refs/heads/main/launcher-feed/manifest.json`
 
 The feed currently distributes the all-races/all-classes client patch and the Stat Tracker addon. To publish future addon or client file updates, update `launcher-feed/manifest.json` and upload each referenced file to this repository. Existing players then receive those feed updates the next time they select **Update & Play**.
 
