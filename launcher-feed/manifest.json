@@ -17,6 +17,12 @@
       "path": "Data/patch-4.MPQ"
     },
     {
+      "sha256": "0de08326fa48a0ebeea7de13db74038f137314a5e828877315cedaa5f616239e",
+      "url": "files/patch-5.MPQ",
+      "version": "1.0.0",
+      "path": "Data/patch-5.MPQ"
+    },
+    {
       "version": "1.9.0",
       "sha256": "eb0c3353ab8fe2f82d883c38b8c4fa5ed0f18f26eee1b557e686dd770ad0b8fa",
       "url": "files/MobRewardStats.lua",
