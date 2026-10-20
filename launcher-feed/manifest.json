@@ -45,6 +45,12 @@
       "sha256": "35cb67c5bc1f1786c3aae9e8730625d04c0716fbc56cfc723f70098648b4dc37",
       "url": "files/MobRewardStatsIcon.tga",
       "path": "Interface/AddOns/MobRewardStats/MobRewardStatsIcon.tga"
+    },
+    {
+      "version": "1.0.0",
+      "sha256": "8f885ae5661d236662d552add2d6a8e1f19307ab764c332121c436651c2c0979",
+      "url": "files/patch-7.MPQ",
+      "path": "Data/patch-7.MPQ"
     }
   ]
 }
