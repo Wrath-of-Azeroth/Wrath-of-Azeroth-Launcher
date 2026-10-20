@@ -12,6 +12,35 @@ local characterData
 local groupUnitGUIDs = {}
 local damagedCreatures = {}
 
+local function getCharacterData(name)
+    -- SavedVariables used to include GetRealmName(), so changing the realm's
+    -- displayed name made the addon look like a new character. Use a stable
+    -- WoA key and fold any earlier realm-name keys into it once.
+    local key = "WoA-" .. name
+    local data = MobRewardStatsDB[key]
+    if type(data) ~= "table" then
+        data = {}
+    end
+    data.stats = type(data.stats) == "table" and data.stats or {}
+
+    local suffix = "-" .. name
+    for oldKey, oldData in pairs(MobRewardStatsDB) do
+        if oldKey ~= key and type(oldKey) == "string" and type(oldData) == "table"
+            and string.sub(oldKey, -#suffix) == suffix then
+            data.totalKills = math.max(tonumber(data.totalKills) or 0, tonumber(oldData.totalKills) or 0)
+            data.totalQuests = math.max(tonumber(data.totalQuests) or 0, tonumber(oldData.totalQuests) or 0)
+            if type(oldData.stats) == "table" then
+                for statId, amount in pairs(oldData.stats) do
+                    data.stats[statId] = math.max(tonumber(data.stats[statId]) or 0, tonumber(amount) or 0)
+                end
+            end
+        end
+    end
+
+    MobRewardStatsDB[key] = data
+    return data
+end
+
 local displayStats = {
     {0, "Strength"},
     {1, "Agility"},
@@ -357,9 +386,7 @@ eventFrame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 eventFrame:SetScript("OnEvent", function(self, event, ...)
     if event == "PLAYER_LOGIN" then
         MobRewardStatsDB = MobRewardStatsDB or {}
-        local key = GetRealmName() .. "-" .. UnitName("player")
-        MobRewardStatsDB[key] = MobRewardStatsDB[key] or {}
-        characterData = MobRewardStatsDB[key]
+        characterData = getCharacterData(UnitName("player"))
         totalKills = tonumber(characterData.totalKills) or 0
         totalQuests = tonumber(characterData.totalQuests) or 0
         characterData.stats = characterData.stats or {}
