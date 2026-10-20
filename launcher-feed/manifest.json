@@ -1,5 +1,6 @@
 {
   "schemaVersion": 1,
+  "realmlist": "wrath-of-azeroth.playit.plus:6946",
   "packages": [
     {
       "sha256": "afa60fa75752cbf0654265ecff72023ca76ea686520085b8015b5be54d3ce29d",
