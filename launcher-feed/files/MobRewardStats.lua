@@ -72,6 +72,14 @@ local function requestServerStats()
     end
 end
 
+local function beginServerSync()
+    serverQuestCount = nil
+    questSyncAttempts = 0
+    questSyncElapsed = 0
+    requestServerStats()
+    questSyncAttempts = 1
+end
+
 local function formatAmount(id)
     local amount = stats[id] or 0
     if id == 30 then
@@ -181,6 +189,7 @@ local function showStatsPanel()
     else
         panel:Show()
         refreshRows()
+        beginServerSync()
     end
 end
 
@@ -410,6 +419,7 @@ eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 eventFrame:RegisterEvent("PARTY_MEMBERS_CHANGED")
 eventFrame:RegisterEvent("RAID_ROSTER_UPDATE")
 eventFrame:RegisterEvent("CHAT_MSG_WHISPER")
+eventFrame:RegisterEvent("CHAT_MSG_WHISPER_INFORM")
 eventFrame:RegisterEvent("CHAT_MSG_ADDON")
 eventFrame:RegisterEvent("CHAT_MSG_SYSTEM")
 eventFrame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
@@ -434,15 +444,11 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
     elseif event == "PLAYER_ENTERING_WORLD" or event == "PARTY_MEMBERS_CHANGED" or event == "RAID_ROSTER_UPDATE" then
         refreshGroupUnits()
         if event == "PLAYER_ENTERING_WORLD" then
-            serverQuestCount = nil
-            questSyncAttempts = 0
-            questSyncElapsed = 0
-            requestServerStats()
-            questSyncAttempts = 1
+            beginServerSync()
         end
     elseif event == "COMBAT_LOG_EVENT_UNFILTERED" then
         onCombatLog(...)
-    elseif event == "CHAT_MSG_WHISPER" then
+    elseif event == "CHAT_MSG_WHISPER" or event == "CHAT_MSG_WHISPER_INFORM" then
         onWhisper(event, ...)
     elseif event == "CHAT_MSG_ADDON" then
         onAddonMessage(event, ...)
