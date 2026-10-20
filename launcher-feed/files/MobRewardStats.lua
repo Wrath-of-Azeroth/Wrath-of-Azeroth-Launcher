@@ -1,4 +1,6 @@
 local PREFIX = "KILLSTATSV1"
+-- Keep the wire-protocol version at 1.9.0: the server enforces that exact
+-- handshake string. The package/UI version is tracked in the TOC and feed.
 local ADDON_VERSION = "1.9.0"
 local stats = {}
 local rows = {}
@@ -323,6 +325,14 @@ end
 local function onServerMessage(message)
     if type(message) ~= "string" then
         return
+    end
+
+    -- LANG_ADDON self-whispers are surfaced by 3.3.5 as CHAT_MSG_ADDON with
+    -- the prefix removed from the message body. Accept both that form and
+    -- the full wire payload so server sync works with either event path.
+    if message == "DONE" or string.match(message, "^KILLS\t%d+$")
+        or string.match(message, "^QUESTS\t%d+$") or string.match(message, "^%d+\t%d+$") then
+        message = PREFIX .. "\t" .. message
     end
 
     if message == PREFIX .. "\tDONE" then
