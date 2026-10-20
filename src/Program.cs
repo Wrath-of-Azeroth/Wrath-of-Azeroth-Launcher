@@ -105,17 +105,20 @@ namespace WrathOfAzerothLauncher
         {
             Text = "Wrath of Azeroth Launcher";
             _canvas.Dock = DockStyle.Fill;
-            _canvas.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             Controls.Add(_canvas);
 
-            Label title = CreateLabel("WRATH OF AZEROTH", new Font("Segoe UI", 25F, FontStyle.Bold),
-                Color.FromArgb(241, 246, 255), new Point(48, 62), new Size(470, 46));
-            title.Anchor = AnchorStyles.Top | AnchorStyles.Left;
-            _canvas.Controls.Add(title);
+            GlassPanel glass = new GlassPanel();
+            glass.Location = new Point(42, 48);
+            glass.Size = new Size(430, 530);
+            _canvas.Controls.Add(glass);
 
-            Label subtitle = CreateLabel("WOTLK 3.3.5a  •  FROSTGATE", new Font("Segoe UI", 10F, FontStyle.Bold),
-                Color.FromArgb(131, 210, 241), new Point(51, 112), new Size(420, 24));
-            _canvas.Controls.Add(subtitle);
+            Label title = CreateLabel("WRATH OF AZEROTH", new Font("Segoe UI", 24F, FontStyle.Bold),
+                Color.FromArgb(245, 248, 255), new Point(28, 28), new Size(365, 42));
+            glass.Controls.Add(title);
+
+            Label subtitle = CreateLabel("WOTLK 3.3.5a", new Font("Segoe UI", 9.5F, FontStyle.Bold),
+                Color.FromArgb(135, 216, 244), new Point(30, 75), new Size(300, 22));
+            glass.Controls.Add(subtitle);
 
             Button settings = CreateButton("⚙", new Point(1190, 24), new Size(46, 42),
                 Color.FromArgb(185, 8, 15, 26), Color.FromArgb(215, 218, 232), 14F);
@@ -126,11 +129,10 @@ namespace WrathOfAzerothLauncher
             _canvas.Controls.Add(settings);
 
             Panel realmCard = new Panel();
-            realmCard.Location = new Point(50, 168);
-            realmCard.Size = new Size(372, 62);
-            realmCard.BackColor = Color.FromArgb(155, 5, 14, 25);
-            realmCard.Anchor = AnchorStyles.Top | AnchorStyles.Left;
-            _canvas.Controls.Add(realmCard);
+            realmCard.Location = new Point(24, 122);
+            realmCard.Size = new Size(378, 70);
+            realmCard.BackColor = Color.FromArgb(110, 3, 10, 18);
+            glass.Controls.Add(realmCard);
 
             Label realmName = CreateLabel("FROSTGATE", new Font("Segoe UI", 11F, FontStyle.Bold),
                 Color.White, new Point(15, 9), new Size(195, 22));
@@ -140,11 +142,11 @@ namespace WrathOfAzerothLauncher
             _realmStatus.Font = new Font("Segoe UI", 8F, FontStyle.Bold);
             _realmStatus.ForeColor = Color.FromArgb(132, 205, 226);
             _realmStatus.TextAlign = ContentAlignment.MiddleLeft;
-            _realmStatus.Location = new Point(239, 10);
-            _realmStatus.Size = new Size(119, 20);
+            _realmStatus.Location = new Point(239, 12);
+            _realmStatus.Size = new Size(124, 20);
             realmCard.Controls.Add(_realmStatus);
 
-            _realmDot.Location = new Point(219, 14);
+            _realmDot.Location = new Point(219, 16);
             _realmDot.Size = new Size(12, 12);
             realmCard.Controls.Add(_realmDot);
 
@@ -155,13 +157,14 @@ namespace WrathOfAzerothLauncher
             _clientStatus.Text = "CLIENT READY TO CHECK";
             _clientStatus.Font = new Font("Segoe UI", 8.5F, FontStyle.Bold);
             _clientStatus.ForeColor = Color.FromArgb(180, 199, 219);
-            _clientStatus.Location = new Point(52, 254);
-            _clientStatus.Size = new Size(380, 22);
-            _canvas.Controls.Add(_clientStatus);
+            _clientStatus.BackColor = Color.Transparent;
+            _clientStatus.Location = new Point(29, 215);
+            _clientStatus.Size = new Size(365, 22);
+            glass.Controls.Add(_clientStatus);
 
             _updateAndPlayButton.Text = "PLAY";
-            _updateAndPlayButton.Location = new Point(50, 303);
-            _updateAndPlayButton.Size = new Size(372, 58);
+            _updateAndPlayButton.Location = new Point(24, 258);
+            _updateAndPlayButton.Size = new Size(378, 58);
             _updateAndPlayButton.Anchor = AnchorStyles.Top | AnchorStyles.Left;
             _updateAndPlayButton.Font = new Font("Segoe UI", 14F, FontStyle.Bold);
             _updateAndPlayButton.ForeColor = Color.FromArgb(6, 18, 30);
@@ -171,11 +174,11 @@ namespace WrathOfAzerothLauncher
             _updateAndPlayButton.FlatAppearance.MouseOverBackColor = Color.FromArgb(156, 235, 255);
             _updateAndPlayButton.FlatAppearance.MouseDownBackColor = Color.FromArgb(75, 187, 222);
             _updateAndPlayButton.Click += UpdateAndPlay;
-            _canvas.Controls.Add(_updateAndPlayButton);
+            glass.Controls.Add(_updateAndPlayButton);
 
             _updateButton.Text = "CHECK FOR UPDATES";
-            _updateButton.Location = new Point(50, 376);
-            _updateButton.Size = new Size(372, 48);
+            _updateButton.Location = new Point(24, 330);
+            _updateButton.Size = new Size(378, 48);
             _updateButton.Anchor = AnchorStyles.Top | AnchorStyles.Left;
             _updateButton.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
             _updateButton.ForeColor = Color.FromArgb(222, 233, 244);
@@ -185,24 +188,18 @@ namespace WrathOfAzerothLauncher
             _updateButton.FlatAppearance.BorderSize = 1;
             _updateButton.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 15, 41, 61);
             _updateButton.Click += UpdateAddons;
-            _canvas.Controls.Add(_updateButton);
+            glass.Controls.Add(_updateButton);
 
             _status.Text = "Ready. Play checks server files before launching the game.";
-            _status.Location = new Point(52, 451);
-            _status.Size = new Size(380, 42);
+            _status.Location = new Point(28, 401);
+            _status.Size = new Size(370, 50);
             _status.ForeColor = Color.FromArgb(184, 201, 220);
             _status.Font = new Font("Segoe UI", 8.5F);
-            _canvas.Controls.Add(_status);
+            _status.BackColor = Color.Transparent;
+            glass.Controls.Add(_status);
 
-            Label footer = CreateLabel("THE STORM IS RISING", new Font("Segoe UI", 8F, FontStyle.Bold),
-                Color.FromArgb(138, 168, 193), new Point(52, 550), new Size(350, 20));
-            footer.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            _canvas.Controls.Add(footer);
-
-            _canvas.Resize += delegate { LayoutLauncherControls(); };
             Shown += async delegate
             {
-                LayoutLauncherControls();
                 await CheckRealmStatusAsync();
                 _realmTimer.Start();
             };
@@ -234,20 +231,6 @@ namespace WrathOfAzerothLauncher
             button.FlatAppearance.BorderSize = 0;
             button.TabStop = false;
             return button;
-        }
-
-        private void LayoutLauncherControls()
-        {
-            if (_canvas.Width <= 0 || _canvas.Height <= 0)
-                return;
-            Control settings = _canvas.Controls.Count > 0 ? _canvas.Controls[2] : null;
-            if (settings != null)
-                settings.Location = new Point(_canvas.ClientSize.Width - 70, 24);
-            foreach (Control control in _canvas.Controls)
-            {
-                if (control.Text == "THE STORM IS RISING")
-                    control.Location = new Point(52, _canvas.ClientSize.Height - 48);
-            }
         }
 
         private async Task CheckRealmStatusAsync()
@@ -904,9 +887,9 @@ namespace WrathOfAzerothLauncher
                 {
                     ColorMatrix matrix = new ColorMatrix(new float[][]
                     {
-                        new float[] { 0.58F, 0F, 0F, 0F, 0F },
-                        new float[] { 0F, 0.63F, 0F, 0F, 0F },
-                        new float[] { 0F, 0F, 0.72F, 0F, 0F },
+                        new float[] { 0.76F, 0F, 0F, 0F, 0F },
+                        new float[] { 0F, 0.80F, 0F, 0F, 0F },
+                        new float[] { 0F, 0F, 0.90F, 0F, 0F },
                         new float[] { 0F, 0F, 0F, 1F, 0F },
                         new float[] { 0F, 0F, 0F, 0F, 1F }
                     });
@@ -917,7 +900,7 @@ namespace WrathOfAzerothLauncher
 
             using (LinearGradientBrush leftShade = new LinearGradientBrush(
                 new Point(0, 0), new Point(Math.Max(500, ClientSize.Width / 2), 0),
-                Color.FromArgb(238, 3, 10, 20), Color.FromArgb(22, 3, 10, 20)))
+                Color.FromArgb(62, 3, 10, 20), Color.FromArgb(4, 3, 10, 20)))
             {
                 graphics.FillRectangle(leftShade, new Rectangle(0, 0, Math.Max(500, ClientSize.Width / 2), ClientSize.Height));
             }
@@ -931,6 +914,44 @@ namespace WrathOfAzerothLauncher
 
             using (Pen edge = new Pen(Color.FromArgb(80, 102, 202, 232), 1F))
                 graphics.DrawLine(edge, 0, 0, ClientSize.Width, 0);
+        }
+    }
+
+    internal sealed class GlassPanel : Panel
+    {
+        public GlassPanel()
+        {
+            DoubleBuffered = true;
+            SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer |
+                ControlStyles.SupportsTransparentBackColor | ControlStyles.UserPaint, true);
+            BackColor = Color.Transparent;
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+            Rectangle bounds = ClientRectangle;
+            bounds.Inflate(-1, -1);
+            using (GraphicsPath shape = CreateRoundedRectangle(bounds, 15))
+            using (SolidBrush fill = new SolidBrush(Color.FromArgb(188, 5, 14, 27)))
+            using (Pen border = new Pen(Color.FromArgb(132, 103, 194, 220), 1F))
+            {
+                e.Graphics.FillPath(fill, shape);
+                e.Graphics.DrawPath(border, shape);
+            }
+        }
+
+        private static GraphicsPath CreateRoundedRectangle(Rectangle bounds, int radius)
+        {
+            int diameter = radius * 2;
+            GraphicsPath path = new GraphicsPath();
+            path.AddArc(bounds.Left, bounds.Top, diameter, diameter, 180F, 90F);
+            path.AddArc(bounds.Right - diameter, bounds.Top, diameter, diameter, 270F, 90F);
+            path.AddArc(bounds.Right - diameter, bounds.Bottom - diameter, diameter, diameter, 0F, 90F);
+            path.AddArc(bounds.Left, bounds.Bottom - diameter, diameter, diameter, 90F, 90F);
+            path.CloseFigure();
+            return path;
         }
     }
 
