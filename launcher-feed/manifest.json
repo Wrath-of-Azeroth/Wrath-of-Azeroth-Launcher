@@ -11,18 +11,6 @@
   ],
   "files": [
     {
-      "sha256": "ab78ae88e6be8d818e890257607f8f2b1138bf03a13121626e0e258ce99945f8",
-      "url": "files/patch-4.MPQ",
-      "version": "1.0.0",
-      "path": "Data/patch-4.MPQ"
-    },
-    {
-      "sha256": "0de08326fa48a0ebeea7de13db74038f137314a5e828877315cedaa5f616239e",
-      "url": "files/patch-5.MPQ",
-      "version": "1.0.0",
-      "path": "Data/patch-5.MPQ"
-    },
-    {
       "version": "1.9.0",
       "sha256": "eb0c3353ab8fe2f82d883c38b8c4fa5ed0f18f26eee1b557e686dd770ad0b8fa",
       "url": "files/MobRewardStats.lua",
@@ -41,10 +29,10 @@
       "path": "Interface/AddOns/MobRewardStats/MobRewardStatsIcon.tga"
     },
     {
-      "sha256": "ea9cd049a997efb506efba1a42f8ea2cb4397e0cafd26c20b7372050d6828a48",
-      "url": "files/patch-8.MPQ",
+      "sha256": "ee793a9b48e7be3eb3fe47d1a8f9c43854f964a6d31e9c066e13aec55da7d60d",
+      "url": "files/patch-9.MPQ",
       "version": "1.0.0",
-      "path": "Data/patch-8.MPQ"
+      "path": "Data/patch-9.MPQ"
     }
   ]
 }
