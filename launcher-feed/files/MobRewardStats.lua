@@ -54,8 +54,10 @@ local displayStats = {
     {2, "Stamina"},
     {3, "Intellect"},
     {4, "Spirit"},
+    {29, "Armor Penetration Rating"},
     {30, "Movement Speed"},
     {31, "Block Value"},
+    {32, "Spell Penetration"},
 }
 local statIdsByName = {
     ["Strength"] = 0,
@@ -63,8 +65,10 @@ local statIdsByName = {
     ["Stamina"] = 2,
     ["Intellect"] = 3,
     ["Spirit"] = 4,
+    ["Armor Penetration Rating"] = 29,
     ["Movement Speed"] = 30,
     ["Block Value"] = 31,
+    ["Spell Penetration"] = 32,
 }
 
 local function requestServerStats()
@@ -284,7 +288,7 @@ local function createPanel()
 
     local subtitle = panel:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     subtitle:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -5)
-    subtitle:SetText("Lifetime stat gains from kills and quests — drag to move")
+    subtitle:SetText("Current reward bonuses from kills and quests — drag to move")
 
     local close = CreateFrame("Button", nil, panel, "UIPanelCloseButton")
     close:SetPoint("TOPRIGHT", panel, "TOPRIGHT", -7, -7)
