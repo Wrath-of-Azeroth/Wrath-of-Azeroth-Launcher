@@ -12,7 +12,7 @@ The artwork's green realm indicator and “Client up to date” text are part of
 
 Keep `LauncherArtwork.png` beside `WoAClientLauncher.exe`. The launcher does not include the base WoW client.
 
-The public update feed distributes one combined client patch with all-races/all-classes, Auto Shot at its original range while moving, level-1 shard-free Summon Voidwalker, and Stat Tracker. The launcher verifies SHA-256 for listed client files and repairs missing or changed files. After confirming the combined patch, it removes obsolete WoA patches 4–8 only when their hashes match the known old files. The server requires Stat Tracker 1.9.0 and disconnects clients that do not report it within 30 seconds. Players can keep their own addons in other addon folders.
+The public update feed distributes one combined client patch with all-races/all-classes, Auto Shot at its original range while moving, level-1 shard-free Summon Voidwalker, and the General-tab Summon Stat Exchanger spell. The launcher verifies SHA-256 for listed client files and repairs missing or changed files. After confirming the combined patch, it removes obsolete WoA patches 4–8 only when their hashes match the known old files. The server requires Stat Tracker 1.9.0 and disconnects clients that do not report it within 30 seconds. Players can keep their own addons in other addon folders.
 
 The launcher executable itself does not update in place. Existing players need this new bundle for launcher interface changes; after installation, the launcher updates managed game files from the feed on **Play** or **Check for Updates**.
 
