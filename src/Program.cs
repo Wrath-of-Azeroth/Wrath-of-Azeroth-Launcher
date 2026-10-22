@@ -404,7 +404,7 @@ namespace WrathOfAzerothLauncher
                 int updatedPackages = await SyncPackages(clientPath, manifestUri, manifest);
                 int updatedFiles = await SyncFiles(clientPath, manifestUri, manifest);
                 int removedLegacyPatches = CleanupSupersededPatches(clientPath, manifest);
-                ConfigureRealmlist(clientPath, manifest);
+                UpdateRealmStatusEndpoint(manifest);
                 int updated = updatedPackages + updatedFiles;
                 string status = updated == 0 ? "Your client is up to date." : "Installed or updated " + updated + " server file(s).";
                 if (removedLegacyPatches > 0)
@@ -426,7 +426,7 @@ namespace WrathOfAzerothLauncher
             }
         }
 
-        private void ConfigureRealmlist(string clientPath, Dictionary<string, object> manifest)
+        private void UpdateRealmStatusEndpoint(Dictionary<string, object> manifest)
         {
             object endpointValue;
             string endpoint = manifest.TryGetValue("realmlist", out endpointValue) ? Convert.ToString(endpointValue) : DefaultRealmListEndpoint;
@@ -436,26 +436,6 @@ namespace WrathOfAzerothLauncher
                 Uri.CheckHostName(match.Groups[1].Value) == UriHostNameType.Unknown)
                 throw new InvalidOperationException("The update manifest contains an invalid realm login address.");
             _activeRealmEndpoint = endpoint;
-
-            string dataPath = Path.Combine(clientPath, "Data");
-            if (!Directory.Exists(dataPath))
-                throw new InvalidOperationException("The selected client does not contain a Data folder.");
-
-            string[] localeDirectories = Directory.GetDirectories(dataPath);
-            int written = 0;
-            foreach (string localeDirectory in localeDirectories)
-            {
-                string locale = Path.GetFileName(localeDirectory);
-                if (!Regex.IsMatch(locale, "^[a-z]{2}[A-Z]{2}$"))
-                    continue;
-
-                string realmlistPath = Path.Combine(localeDirectory, "realmlist.wtf");
-                File.WriteAllText(realmlistPath, "set realmlist " + endpoint + Environment.NewLine, new UTF8Encoding(false));
-                written++;
-            }
-
-            if (written == 0)
-                throw new InvalidOperationException("No WoW locale folder was found under the client's Data folder.");
         }
 
         private async Task<int> SyncPackages(string clientPath, Uri manifestUri, Dictionary<string, object> manifest)

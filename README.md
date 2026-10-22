@@ -1,6 +1,6 @@
 # Wrath of Azeroth Launcher
 
-The Windows launcher displays `LauncherArtwork.png` at its original 1672×941 size. Its image is used unchanged; invisible click areas activate **Play**, **Check for Updates**, Settings, and the window controls. **Play** checks the update feed, installs or repairs managed server files and addons, writes the current login endpoint into the client's `realmlist.wtf`, and starts WoW after a successful update. **Check for Updates** performs the same update without launching the game. Use the gear in the image to choose the client folder or update-feed URL. Update results appear in a small message window so the artwork remains untouched.
+The Windows launcher displays `LauncherArtwork.png` at its original 1672×941 size. Its image is used unchanged; invisible click areas activate **Play**, **Check for Updates**, Settings, and the window controls. **Play** checks the update feed, installs or repairs managed server files and addons, and starts WoW after a successful update. **Check for Updates** performs the same update without launching the game. The launcher does not change `realmlist.wtf`; set your realm address in the client yourself. Use the gear in the image to choose the client folder or update-feed URL. Update results appear in a small message window so the artwork remains untouched.
 
 The artwork's green realm indicator and “Client up to date” text are part of the supplied image and remain static. The launcher checks the realm connection in the background, but does not paint over the image to change those pixels.
 
