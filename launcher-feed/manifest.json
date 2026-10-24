@@ -29,9 +29,9 @@
       "path": "Interface/AddOns/MobRewardStats/MobRewardStatsIcon.tga"
     },
     {
-      "sha256": "b8a0603cab7cb2078cb1074589386b2c4f017e143ac4d8a637580c5a77e427cb",
+      "sha256": "59ec23c5eb32512c883ff1fe57b9f7e844f591480cfcae6c199a8c50d603dc96",
       "url": "files/patch-9.MPQ",
-      "version": "1.8.2",
+      "version": "1.8.3",
       "path": "Data/patch-9.MPQ"
     }
   ]
