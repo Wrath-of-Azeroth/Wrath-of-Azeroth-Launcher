@@ -1,38 +1,43 @@
 {
-  "schemaVersion": 1,
-  "realmlist": "wrath-of-azeroth.playit.plus:6946",
-  "packages": [
-    {
-      "sha256": "dbbdd114349e6f9c86e129536b911ec3bb4fd7fc1bf8ca3ac961f2755b6af147",
-      "id": "MobRewardStats",
-      "version": "1.9.9",
-      "url": "packages/MobRewardStats.zip"
-    }
-  ],
-  "files": [
-    {
-      "version": "1.9.9",
-      "sha256": "181a496a9fe9ef8b2b862702a6d931b7b99ba2a3542af3a4c1fac07596de92b2",
-      "url": "files/MobRewardStats.lua",
-      "path": "Interface/AddOns/MobRewardStats/MobRewardStats.lua"
-    },
-    {
-      "version": "1.9.9",
-      "sha256": "e6e42ac348517237441ec554b339603eead7c2f9f35bcbe003b0bad21a3d66cc",
-      "url": "files/MobRewardStats.toc",
-      "path": "Interface/AddOns/MobRewardStats/MobRewardStats.toc"
-    },
-    {
-      "version": "1.9.0",
-      "sha256": "35cb67c5bc1f1786c3aae9e8730625d04c0716fbc56cfc723f70098648b4dc37",
-      "url": "files/MobRewardStatsIcon.tga",
-      "path": "Interface/AddOns/MobRewardStats/MobRewardStatsIcon.tga"
-    },
-    {
-      "version": "1.8.12",
-      "sha256": "280c0390cb9be9fb1f5f88b2a3569a7746dd105847dfe3175f62b12c3a6b91e4",
-      "url": "files/patch-9-1.8.12.MPQ",
-      "path": "Data/patch-9.MPQ"
-    }
-  ]
+    "schemaVersion":  1,
+    "realmlist":  "wrath-of-azeroth.playit.plus:6946",
+    "packages":  [
+                     {
+                         "sha256":  "dbbdd114349e6f9c86e129536b911ec3bb4fd7fc1bf8ca3ac961f2755b6af147",
+                         "id":  "MobRewardStats",
+                         "version":  "1.9.9",
+                         "url":  "packages/MobRewardStats.zip"
+                     }
+                 ],
+    "files":  [
+                  {
+                      "version":  "1.9.9",
+                      "sha256":  "181a496a9fe9ef8b2b862702a6d931b7b99ba2a3542af3a4c1fac07596de92b2",
+                      "url":  "files/MobRewardStats.lua",
+                      "path":  "Interface/AddOns/MobRewardStats/MobRewardStats.lua"
+                  },
+                  {
+                      "version":  "1.9.9",
+                      "sha256":  "e6e42ac348517237441ec554b339603eead7c2f9f35bcbe003b0bad21a3d66cc",
+                      "url":  "files/MobRewardStats.toc",
+                      "path":  "Interface/AddOns/MobRewardStats/MobRewardStats.toc"
+                  },
+                  {
+                      "version":  "1.9.0",
+                      "sha256":  "35cb67c5bc1f1786c3aae9e8730625d04c0716fbc56cfc723f70098648b4dc37",
+                      "url":  "files/MobRewardStatsIcon.tga",
+                      "path":  "Interface/AddOns/MobRewardStats/MobRewardStatsIcon.tga"
+                  },
+                  {
+                      "version":  "1.8.12",
+                      "sha256":  "280c0390cb9be9fb1f5f88b2a3569a7746dd105847dfe3175f62b12c3a6b91e4",
+                      "url":  "files/patch-9-1.8.12.MPQ",
+                      "path":  "Data/patch-9.MPQ"
+                  }
+              ],
+    "launcher":  {
+                     "version":  "1.0.1",
+                     "sha256":  "40b4c33854f491cba0f135b034273163a176e0cf28ea46fc07465825574b8533",
+                     "url":  "files/WoAClientLauncher-1.0.1.exe"
+                 }
 }

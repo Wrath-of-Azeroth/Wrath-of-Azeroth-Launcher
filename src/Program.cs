@@ -405,6 +405,9 @@ namespace WrathOfAzerothLauncher
                 int updatedFiles = await SyncFiles(clientPath, manifestUri, manifest);
                 int removedLegacyPatches = CleanupSupersededPatches(clientPath, manifest);
                 UpdateRealmStatusEndpoint(manifest);
+                if (playAfter && await UpdateLauncherAndRestart(clientPath, manifestUri, manifest))
+                    return;
+
                 int updated = updatedPackages + updatedFiles;
                 string status = updated == 0 ? "Your client is up to date." : "Installed or updated " + updated + " server file(s).";
                 if (removedLegacyPatches > 0)
@@ -436,6 +439,100 @@ namespace WrathOfAzerothLauncher
                 Uri.CheckHostName(match.Groups[1].Value) == UriHostNameType.Unknown)
                 throw new InvalidOperationException("The update manifest contains an invalid realm login address.");
             _activeRealmEndpoint = endpoint;
+        }
+
+        private async Task<bool> UpdateLauncherAndRestart(string clientPath, Uri manifestUri, Dictionary<string, object> manifest)
+        {
+            object launcherValue;
+            Dictionary<string, object> launcher = manifest.TryGetValue("launcher", out launcherValue)
+                ? launcherValue as Dictionary<string, object>
+                : null;
+            if (launcher == null)
+                return false;
+
+            string versionText = RequiredString(launcher, "version");
+            Version latestVersion;
+            Version currentVersion;
+            if (!Version.TryParse(versionText, out latestVersion) || !Version.TryParse(LauncherBuildInfo.Version, out currentVersion))
+                throw new InvalidOperationException("The launcher update contains an invalid version.");
+            if (latestVersion <= currentVersion)
+                return false;
+
+            string fileUrl = RequiredString(launcher, "url");
+            string expectedHash = RequiredString(launcher, "sha256").ToLowerInvariant();
+            if (!Regex.IsMatch(expectedHash, "^[a-f0-9]{64}$"))
+                throw new InvalidOperationException("The launcher update contains an invalid SHA-256 hash.");
+
+            Uri launcherUri = ResolveFeedResource(manifestUri, fileUrl, "Launcher update");
+            SetStatus("Downloading launcher update " + versionText + "…", false);
+            byte[] launcherBytes = await ReadUriBytes(launcherUri);
+            if (!String.Equals(ComputeSha256(launcherBytes), expectedHash, StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException("The downloaded launcher hash does not match.");
+
+            string launcherPath = Application.ExecutablePath;
+            string launcherDirectory = Path.GetDirectoryName(launcherPath);
+            string stagedPath = Path.Combine(launcherDirectory, ".WoAClientLauncher-" + Guid.NewGuid().ToString("N") + ".new.exe");
+            string updaterPath = Path.Combine(Path.GetTempPath(), "WoALauncherUpdate-" + Guid.NewGuid().ToString("N") + ".ps1");
+            File.WriteAllBytes(stagedPath, launcherBytes);
+            try
+            {
+                File.WriteAllText(updaterPath, BuildLauncherUpdaterScript(
+                    Process.GetCurrentProcess().Id, launcherPath, stagedPath, clientPath), new UTF8Encoding(false));
+
+                ProcessStartInfo updater = new ProcessStartInfo();
+                updater.FileName = "powershell.exe";
+                updater.Arguments = "-NoProfile -ExecutionPolicy Bypass -File \"" + updaterPath + "\"";
+                updater.UseShellExecute = false;
+                updater.CreateNoWindow = true;
+                Process.Start(updater);
+            }
+            catch
+            {
+                if (File.Exists(stagedPath))
+                    File.Delete(stagedPath);
+                if (File.Exists(updaterPath))
+                    File.Delete(updaterPath);
+                throw;
+            }
+
+            Close();
+            return true;
+        }
+
+        private static string BuildLauncherUpdaterScript(int parentProcessId, string launcherPath, string stagedPath, string clientPath)
+        {
+            StringBuilder script = new StringBuilder();
+            script.AppendLine("$ErrorActionPreference = 'Stop'");
+            script.AppendLine("$parentProcessId = " + parentProcessId);
+            script.AppendLine("$launcherPath = '" + EscapePowerShellString(launcherPath) + "'");
+            script.AppendLine("$stagedPath = '" + EscapePowerShellString(stagedPath) + "'");
+            script.AppendLine("$clientPath = '" + EscapePowerShellString(clientPath) + "'");
+            script.AppendLine("$backupPath = $launcherPath + '.previous'");
+            script.AppendLine("$updateInstalled = $false");
+            script.AppendLine("while (Get-Process -Id $parentProcessId -ErrorAction SilentlyContinue) { Start-Sleep -Milliseconds 500 }");
+            script.AppendLine("try {");
+            script.AppendLine("  if (Test-Path -LiteralPath $backupPath) { Remove-Item -LiteralPath $backupPath -Force }");
+            script.AppendLine("  Move-Item -LiteralPath $launcherPath -Destination $backupPath -Force");
+            script.AppendLine("  Move-Item -LiteralPath $stagedPath -Destination $launcherPath -Force");
+            script.AppendLine("  $updateInstalled = $true");
+            script.AppendLine("  Remove-Item -LiteralPath $backupPath -Force");
+            script.AppendLine("  Start-Process -FilePath (Join-Path $clientPath 'Wow.exe') -WorkingDirectory $clientPath");
+            script.AppendLine("} catch {");
+            script.AppendLine("  if (!$updateInstalled -and !(Test-Path -LiteralPath $launcherPath) -and (Test-Path -LiteralPath $backupPath)) { Move-Item -LiteralPath $backupPath -Destination $launcherPath -Force }");
+            script.AppendLine("  Add-Type -AssemblyName System.Windows.Forms");
+            script.AppendLine("  $message = if ($updateInstalled) { 'The launcher updated, but WoW could not start. Please launch the game again.' } else { 'The launcher update could not be installed. The previous launcher was restored. Please try again or reinstall the launcher.' }");
+            script.AppendLine("  [System.Windows.Forms.MessageBox]::Show($message, 'Wrath of Azeroth Launcher', 'OK', 'Error') | Out-Null");
+            script.AppendLine("  if (Test-Path -LiteralPath $launcherPath) { Start-Process -FilePath $launcherPath }");
+            script.AppendLine("}");
+            script.AppendLine("if (Test-Path -LiteralPath $stagedPath) { Remove-Item -LiteralPath $stagedPath -Force }");
+            script.AppendLine("$scriptPath = $MyInvocation.MyCommand.Path");
+            script.AppendLine("Remove-Item -LiteralPath $scriptPath -Force -ErrorAction SilentlyContinue");
+            return script.ToString();
+        }
+
+        private static string EscapePowerShellString(string value)
+        {
+            return value.Replace("'", "''");
         }
 
         private async Task<int> SyncPackages(string clientPath, Uri manifestUri, Dictionary<string, object> manifest)

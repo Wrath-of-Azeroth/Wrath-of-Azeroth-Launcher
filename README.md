@@ -14,8 +14,8 @@ Keep `LauncherArtwork.png` beside `WoAClientLauncher.exe`. The launcher does not
 
 The public update feed distributes one combined client patch with all-races/all-classes, Auto Shot at its original range while moving, level-1 shard-free Summon Voidwalker, and the General-tab Summon Stat Exchanger spell. The launcher verifies SHA-256 for listed client files and repairs missing or changed files. After confirming the combined patch, it removes obsolete WoA patches 4–8 only when their hashes match the known old files. The server requires Stat Tracker 1.9.0 and disconnects clients that do not report it within 30 seconds. Players can keep their own addons in other addon folders.
 
-The launcher executable itself does not update in place. Existing players need this new bundle for launcher interface changes; after installation, the launcher updates managed game files from the feed on **Play** or **Check for Updates**.
+On **Play**, the launcher checks the feed for a newer launcher version after updating managed game files. It verifies the new executable's SHA-256, replaces itself after closing, and then starts WoW. This first self-updating release must be installed from the new bundle once; later launcher releases can arrive through **Play**.
 
 ## Rebuild
 
-Run `powershell -ExecutionPolicy Bypass -File .\build.ps1`. The script builds the Windows executable and bundle from `src\Program.cs`, `assets\LauncherArtwork.png`, and the current `launcher-feed`.
+Set `launcher-version.txt` to the new numeric `major.minor.patch` version, then run `powershell -ExecutionPolicy Bypass -File .\build.ps1`. The build script compiles the launcher, publishes its versioned executable into `launcher-feed/files`, and updates the launcher entry and hash in the feed manifest.
