@@ -56,8 +56,13 @@ local displayStats = {
     {4, "Spirit"},
     {29, "Armor Penetration Rating"},
     {30, "Movement Speed"},
-    {31, "Block Value"},
     {32, "Spell Penetration"},
+    {33, "Armor"},
+    {34, "Block Chance"},
+    {35, "Parry Chance"},
+    -- Keep showing historic reward data even though Block Value is no longer
+    -- available from the current exchanger.
+    {31, "Block Value (legacy)"},
 }
 local statIdsByName = {
     ["Strength"] = 0,
@@ -69,6 +74,9 @@ local statIdsByName = {
     ["Movement Speed"] = 30,
     ["Block Value"] = 31,
     ["Spell Penetration"] = 32,
+    ["Armor"] = 33,
+    ["Block Chance"] = 34,
+    ["Parry Chance"] = 35,
 }
 
 local function requestServerStats()
@@ -88,7 +96,7 @@ end
 
 local function formatAmount(id)
     local amount = stats[id] or 0
-    if id == 30 then
+    if id == 30 or id == 34 or id == 35 then
         return string.format("+%.2f%%", amount / 100)
     end
     return string.format("+%.2f", amount / 100)
@@ -267,6 +275,9 @@ local function createPanel()
     panel:SetFrameStrata("DIALOG")
     panel:SetClampedToScreen(true)
     panel:SetMovable(true)
+    panel:SetResizable(true)
+    panel:SetMinResize(300, 390)
+    panel:SetMaxResize(700, 800)
     panel:EnableMouse(true)
     panel:RegisterForDrag("LeftButton")
     panel:SetScript("OnDragStart", function(self) self:StartMoving() end)
@@ -310,6 +321,14 @@ local function createPanel()
     scrollChild:SetHeight(#displayStats * 22)
     scroll:SetScrollChild(scrollChild)
 
+    panel:SetScript("OnSizeChanged", function(_, width)
+        local contentWidth = math.max(180, width - 75)
+        scrollChild:SetWidth(contentWidth)
+        for _, row in ipairs(rows) do
+            row:SetWidth(contentWidth - 5)
+        end
+    end)
+
     for index, entry in ipairs(displayStats) do
         local row = scrollChild:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
         row:SetPoint("TOPLEFT", 4, -((index - 1) * 22))
@@ -317,6 +336,16 @@ local function createPanel()
         row:SetJustifyH("LEFT")
         rows[index] = row
     end
+
+    local resizeGrip = CreateFrame("Button", nil, panel)
+    resizeGrip:SetSize(16, 16)
+    resizeGrip:SetPoint("BOTTOMRIGHT", panel, "BOTTOMRIGHT", -12, 12)
+    resizeGrip:SetNormalTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Up")
+    resizeGrip:SetHighlightTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Highlight")
+    resizeGrip:SetPushedTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Down")
+    resizeGrip:SetScript("OnMouseDown", function() panel:StartSizing("BOTTOMRIGHT") end)
+    resizeGrip:SetScript("OnMouseUp", function() panel:StopMovingOrSizing() end)
+    panel:GetScript("OnSizeChanged")(panel, panel:GetWidth(), panel:GetHeight())
 
     SLASH_STATTRACKER1 = "/stattracker"
     SLASH_STATTRACKER2 = "/killstats"
