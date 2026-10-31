@@ -9,10 +9,10 @@
       "url": "packages/MobRewardStats.zip"
     },
     {
-      "sha256": "e563089c0de6ded7cfa05d7bba9cc394a5ccda5e02697c567ed24db15bc31288",
+      "sha256": "e0b0b27aaab7cd1c9ed9cec7f8870a9e544744020810fe5c193147bd3f5cb36f",
       "id": "WoARaidFinder",
-      "version": "1.3.6",
-      "url": "packages/WoARaidFinder-1.3.6.zip"
+      "version": "1.3.7",
+      "url": "packages/WoARaidFinder-1.3.7.zip"
     }
   ],
   "files": [
