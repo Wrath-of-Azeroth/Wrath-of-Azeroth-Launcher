@@ -7,6 +7,12 @@
       "id": "MobRewardStats",
       "version": "1.10.1",
       "url": "packages/MobRewardStats.zip"
+    },
+    {
+      "sha256": "87ebf348fb9b3bee3d011086b3830472b4e5837df9cfeab251ac9fbf1e576c6a",
+      "id": "WoARaidFinder",
+      "version": "1.3.2",
+      "url": "packages/WoARaidFinder.zip"
     }
   ],
   "files": [
