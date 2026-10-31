@@ -208,12 +208,22 @@ local function showStatsPanel()
 end
 
 local function placeMinimapButton()
-    if not minimapButton or not MiniMapTracking then
+    if not minimapButton or not Minimap then
         return
     end
     minimapButton:ClearAllPoints()
-    -- Follow Blizzard's tracking frame itself so this stays aligned if the minimap moves.
-    minimapButton:SetPoint("TOPLEFT", MiniMapTracking, "TOPLEFT", 0, -36)
+    local angle = tonumber(MobRewardStatsDB and MobRewardStatsDB.minimapAngle)
+    if angle then
+        local radius = Minimap:GetWidth() / 2 + 2
+        local radians = math.rad(angle)
+        minimapButton:SetPoint("CENTER", Minimap, "CENTER",
+            math.cos(radians) * radius, math.sin(radians) * radius)
+    elseif MiniMapTracking then
+        -- Preserve the existing tracking-icon position until the player moves it.
+        minimapButton:SetPoint("TOPLEFT", MiniMapTracking, "TOPLEFT", 0, -36)
+    else
+        minimapButton:SetPoint("CENTER", Minimap, "CENTER", 0, 0)
+    end
 end
 
 local function createMinimapButton()
@@ -226,6 +236,8 @@ local function createMinimapButton()
     minimapButton:SetFrameStrata("MEDIUM")
     minimapButton:SetFrameLevel(Minimap:GetFrameLevel() + 8)
     minimapButton:EnableMouse(true)
+    minimapButton:SetMovable(true)
+    minimapButton:RegisterForDrag("LeftButton")
     minimapButton:RegisterForClicks("LeftButtonUp")
 
     local background = minimapButton:CreateTexture(nil, "BACKGROUND")
@@ -253,11 +265,34 @@ local function createMinimapButton()
     minimapButton:SetScript("OnMouseDown", function() pressedOverlay:Show() end)
     minimapButton:SetScript("OnMouseUp", function() pressedOverlay:Hide() end)
     minimapButton:SetHighlightTexture("Interface\\Minimap\\UI-Minimap-ZoomButton-Highlight")
-    minimapButton:SetScript("OnClick", showStatsPanel)
+    minimapButton:SetScript("OnDragStart", function(self)
+        local x, y = self:GetCenter()
+        self.dragStartX, self.dragStartY = x, y
+        self:StartMoving()
+    end)
+    minimapButton:SetScript("OnDragStop", function(self)
+        self:StopMovingOrSizing()
+        local x, y = self:GetCenter()
+        local centerX, centerY = Minimap:GetCenter()
+        local dx, dy = x - centerX, y - centerY
+        if dx * dx + dy * dy > 16 then
+            MobRewardStatsDB.minimapAngle = math.deg(math.atan2(dy, dx))
+            self.wasDragged = true
+        end
+        placeMinimapButton()
+    end)
+    minimapButton:SetScript("OnClick", function(self)
+        if self.wasDragged then
+            self.wasDragged = nil
+            return
+        end
+        showStatsPanel()
+    end)
     minimapButton:SetScript("OnEnter", function(self)
         GameTooltip:SetOwner(self, "ANCHOR_LEFT")
         GameTooltip:AddLine("Stat Tracker", 1, 0.82, 0)
         GameTooltip:AddLine("Click to view lifetime stats", 1, 1, 1)
+        GameTooltip:AddLine("Left-click and drag to move", .75, .75, .75)
         GameTooltip:Show()
     end)
     minimapButton:SetScript("OnLeave", GameTooltip_Hide)

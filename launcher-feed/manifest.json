@@ -3,28 +3,28 @@
   "realmlist": "wrath-of-azeroth.playit.plus:6946",
   "packages": [
     {
-      "sha256": "91fd09a0ecf4938a8493e6eeb22613a1724eb92cdfbdeade22916edf5f224d3d",
+      "sha256": "7dbc2068bdd47ce3b9d38eb101fa14080dad841776047ac12dc739843330c237",
       "id": "MobRewardStats",
-      "version": "1.10.1",
+      "version": "1.10.2",
       "url": "packages/MobRewardStats.zip"
     },
     {
-      "sha256": "e0b0b27aaab7cd1c9ed9cec7f8870a9e544744020810fe5c193147bd3f5cb36f",
+      "sha256": "da0f62bf80af113940f69252d3c9fb6557be0ca7fb14f418347cbe86a7d9f4f5",
       "id": "WoARaidFinder",
-      "version": "1.3.7",
-      "url": "packages/WoARaidFinder-1.3.7.zip"
+      "version": "1.3.8",
+      "url": "packages/WoARaidFinder-1.3.8.zip"
     }
   ],
   "files": [
     {
-      "version": "1.10.1",
-      "sha256": "82892fdfa736dfe819f6a3406d4a44fc486840c4cb781aa5cb4f08d7ddb5e49f",
+      "version": "1.10.2",
+      "sha256": "7a6a91a22910d7536564144b05a08a87e90471d5196ce7e7eb640624d35e7660",
       "url": "files/MobRewardStats.lua",
       "path": "Interface/AddOns/MobRewardStats/MobRewardStats.lua"
     },
     {
-      "version": "1.10.1",
-      "sha256": "1378ea3461fdc7ae115a22d45aaf6a2f41c972e44094b907563befe1b4dae2e1",
+      "version": "1.10.2",
+      "sha256": "287cfb97693675d44b971e835115e1df32ac3b5479f6a752f209dafce76366d6",
       "url": "files/MobRewardStats.toc",
       "path": "Interface/AddOns/MobRewardStats/MobRewardStats.toc"
     },
