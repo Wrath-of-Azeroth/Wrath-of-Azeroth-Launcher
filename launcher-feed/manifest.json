@@ -41,15 +41,15 @@
       "path": "Interface/AddOns/MobRewardStats/MobRewardStatsIcon.tga"
     },
     {
-      "version": "1.8.29",
-      "sha256": "db76523716cbc2bd1eb20498f65a0f2d8b253324902d77e28e4cc0f5fa840386",
-      "url": "files/patch-9-1.8.29.MPQ",
+      "version": "1.8.30",
+      "sha256": "fd0b580e2ab0405b362be55afc114e5099b6fa29e91ab9f3922fd0b6c23f75cd",
+      "url": "files/patch-9-1.8.30.MPQ",
       "path": "Data/patch-9.MPQ"
     },
     {
-      "version": "1.0.0",
-      "sha256": "db76523716cbc2bd1eb20498f65a0f2d8b253324902d77e28e4cc0f5fa840386",
-      "url": "files/patch-10.MPQ",
+      "version": "1.0.1",
+      "sha256": "fd0b580e2ab0405b362be55afc114e5099b6fa29e91ab9f3922fd0b6c23f75cd",
+      "url": "files/patch-10-1.0.1.MPQ",
       "path": "Data/patch-10.MPQ"
     }
   ],
