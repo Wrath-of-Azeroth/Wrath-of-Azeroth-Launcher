@@ -726,11 +726,17 @@ namespace WrathOfAzerothLauncher
                 throw new InvalidOperationException("A client file path must be relative to the game folder.");
 
             string[] segments = normalized.Split('/');
-            if (segments.Length < 2 || ( !String.Equals(segments[0], "Data", StringComparison.OrdinalIgnoreCase)
-                    && !String.Equals(segments[0], "Interface", StringComparison.OrdinalIgnoreCase)
-                    && !String.Equals(segments[0], "WTF", StringComparison.OrdinalIgnoreCase)
-                    && !String.Equals(segments[0], "Fonts", StringComparison.OrdinalIgnoreCase)))
-                throw new InvalidOperationException("Client file updates are allowed only under Data, Interface, WTF, or Fonts.");
+            bool rootClientBinary = segments.Length == 1 &&
+                (String.Equals(segments[0], "Wow.exe", StringComparison.OrdinalIgnoreCase)
+                    || String.Equals(segments[0], "WowError.exe", StringComparison.OrdinalIgnoreCase)
+                    || String.Equals(Path.GetExtension(segments[0]), ".dll", StringComparison.OrdinalIgnoreCase));
+            bool managedClientFolder = segments.Length >= 2 &&
+                (String.Equals(segments[0], "Data", StringComparison.OrdinalIgnoreCase)
+                    || String.Equals(segments[0], "Interface", StringComparison.OrdinalIgnoreCase)
+                    || String.Equals(segments[0], "WTF", StringComparison.OrdinalIgnoreCase)
+                    || String.Equals(segments[0], "Fonts", StringComparison.OrdinalIgnoreCase));
+            if (!rootClientBinary && !managedClientFolder)
+                throw new InvalidOperationException("Client file updates are allowed for Wow.exe, WowError.exe, root DLLs, or under Data, Interface, WTF, and Fonts.");
 
             foreach (string segment in segments)
             {
