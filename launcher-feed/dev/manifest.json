@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "realmlist": "signaling-steele.tun.ply.gg:20461",
+  "packages": [
+    {
+      "id": "MobRewardStats",
+      "version": "1.10.2",
+      "url": "packages/MobRewardStats.zip",
+      "sha256": "7dbc2068bdd47ce3b9d38eb101fa14080dad841776047ac12dc739843330c237"
+    },
+    {
+      "id": "WoARaidFinder",
+      "version": "1.3.8",
+      "url": "packages/WoARaidFinder-1.3.8.zip",
+      "sha256": "da0f62bf80af113940f69252d3c9fb6557be0ca7fb14f418347cbe86a7d9f4f5"
+    }
+  ],
+  "files": [
+    {
+      "version": "1.8.27",
+      "url": "files/patch-9-1.8.27.MPQ",
+      "path": "Data/patch-9.MPQ",
+      "sha256": "a9c6124e7619925c79cdf79df093ecba244ee9dc09ee5d12c631b051d805cdd1"
+    }
+  ]
+}
