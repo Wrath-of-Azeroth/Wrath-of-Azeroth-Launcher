@@ -75,7 +75,25 @@ try {
     Copy-Item -LiteralPath $executable -Destination $staging
     Copy-Item -LiteralPath (Join-Path $root 'LauncherArtwork.png') -Destination $staging
     Copy-Item -LiteralPath (Join-Path $root 'README.txt') -Destination $staging
-    Copy-Item -LiteralPath $feed -Destination $staging -Recurse
+    $bundleFeed = Join-Path $staging 'launcher-feed'
+    New-Item -ItemType Directory -Path $bundleFeed | Out-Null
+    Copy-Item -LiteralPath (Join-Path $feed 'manifest.json') -Destination $bundleFeed
+    $bundleManifest = Get-Content -LiteralPath (Join-Path $feed 'manifest.json') -Raw | ConvertFrom-Json
+    $feedFiles = @($bundleManifest.files | ForEach-Object { $_.url })
+    $feedFiles += @($bundleManifest.packages | ForEach-Object { $_.url })
+    if ($bundleManifest.launcher -and $bundleManifest.launcher.url) {
+        $feedFiles += $bundleManifest.launcher.url
+    }
+    foreach ($relativePath in $feedFiles) {
+        $sourcePath = Join-Path $feed ($relativePath -replace '/', [System.IO.Path]::DirectorySeparatorChar)
+        if (-not (Test-Path -LiteralPath $sourcePath -PathType Leaf)) {
+            throw "Launcher feed manifest references a missing file: $relativePath"
+        }
+        $destinationPath = Join-Path $bundleFeed ($relativePath -replace '/', [System.IO.Path]::DirectorySeparatorChar)
+        $destinationDirectory = Split-Path -Parent $destinationPath
+        New-Item -ItemType Directory -Path $destinationDirectory -Force | Out-Null
+        Copy-Item -LiteralPath $sourcePath -Destination $destinationPath -Force
+    }
     if (Test-Path -LiteralPath $bundle) {
         Remove-Item -LiteralPath $bundle -Force
     }
