@@ -21,3 +21,5 @@ On **Play**, the launcher checks the feed for a newer launcher version after upd
 ## Rebuild
 
 Set `launcher-version.txt` to the new numeric `major.minor.patch` version, then run `powershell -ExecutionPolicy Bypass -File .\build.ps1`. The build script compiles the launcher, publishes its versioned executable into `launcher-feed/files`, and updates the launcher entry and hash in the feed manifest.
+
+The Live client feed also installs **Shield Retaliation** in the Warrior Protection spellbook. Its client spell record preserves the Paragon spell and icon while supporting the custom spell.

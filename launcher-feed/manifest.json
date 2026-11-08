@@ -47,9 +47,9 @@
       "path": "Data/patch-9.MPQ"
     },
     {
-      "version": "1.0.1",
-      "sha256": "fd0b580e2ab0405b362be55afc114e5099b6fa29e91ab9f3922fd0b6c23f75cd",
-      "url": "files/patch-10-1.0.1.MPQ",
+      "version": "1.0.2",
+      "sha256": "cebfcaa589adffd5edbc4e5d9f30f25eda7b3981ca5ce514197b6a1347821d11",
+      "url": "files/patch-10-1.0.2.MPQ",
       "path": "Data/patch-10.MPQ"
     },
     {
